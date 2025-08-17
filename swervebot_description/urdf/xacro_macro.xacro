@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+
+	<!-- material colors -->
+	<material name="white">
+		<color rgba="1 1 1 1" />
+	</material>
+
+	<material name="orange">
+		<color rgba="1 0.3 0.1 1" />
+	</material>
+
+	<material name="blue">
+		<color rgba="0.2 0.2 1 1" />
+	</material>
+
+	<material name="black">
+		<color rgba="0 0 0 1" />
+	</material>
+
+	<material name="red">
+		<color rgba="1 0 0 1" />
+	</material>
+
+	<!-- inertial macros -->
+	<xacro:macro name="inertial_sphere" params="mass radius">
+		<inertia ixx="${(2/5) * mass * (radius*radius)}" ixy="0.0" ixz="0.0"
+			iyy="${(2/5) * mass * (radius*radius)}" iyz="0.0"
+			izz="${(2/5) * mass * (radius*radius)}" />
+	</xacro:macro>
+
+
+	<xacro:macro name="inertial_box" params="mass x y z">
+		<inertia ixx="${(1/12) * mass * (y*y+z*z)}" ixy="0.0" ixz="0.0"
+			iyy="${(1/12) * mass * (x*x+z*z)}" iyz="0.0"
+			izz="${(1/12) * mass * (x*x+y*y)}" />
+	</xacro:macro>
+
+
+	<xacro:macro name="inertial_cylinder" params="mass length radius">
+		<inertia ixx="${(1/12) * mass * (3*radius*radius + length*length)}" ixy="0.0"
+			ixz="0.0"
+			iyy="${(1/12) * mass * (3*radius*radius + length*length)}" iyz="0.0"
+			izz="${(1/2) * mass * (radius*radius)}" />
+	</xacro:macro>
+
+	<!-- link & joint generation macros -->
+	<xacro:macro name="link_generator"
+		params="name color_name origin_x origin_y origin_z roll:=0 pitch:=0 yaw:=0 mass *shape *inertia">
+		<link name="${name}">
+			<visual>
+				<origin xyz="${origin_x} ${origin_y} ${origin_z}" rpy="${roll} ${pitch} ${yaw}" />
+				<geometry>
+					<xacro:insert_block name="shape" />
+				</geometry>
+				<material name="${color_name}" />
+			</visual>
+			<collision>
+				<origin xyz="${origin_x} ${origin_y} ${origin_z}" rpy="${roll} ${pitch} ${yaw}" />
+				<geometry>
+					<xacro:insert_block name="shape" />
+				</geometry>
+			</collision>
+			<inertial>
+				<origin xyz="${origin_x} ${origin_y} ${origin_z}" rpy="${roll} ${pitch} ${yaw}" />
+				<mass value="${mass}" />
+				<xacro:insert_block name="inertia" />
+			</inertial>
+		</link>
+	</xacro:macro>
+
+</robot>
