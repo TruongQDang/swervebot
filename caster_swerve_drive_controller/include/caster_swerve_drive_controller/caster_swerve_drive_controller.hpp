@@ -12,6 +12,7 @@
 
 #include "controller_interface/controller_interface.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/twist_stamped.hpp"
 #include "hardware_interface/loaned_command_interface.hpp"
 #include "hardware_interface/loaned_state_interface.hpp"
 #include "rcl_interfaces/msg/parameter_descriptor.hpp"
@@ -40,13 +41,10 @@ namespace caster_swerve_drive_controller {
 // Define aliases for convenience
 using CallbackReturn =
     rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
-// Use Twist directly as the command message type
-using CmdVelMsg = geometry_msgs::msg::Twist;
 using Twist = geometry_msgs::msg::Twist;
-using OdomStateMsg = nav_msgs::msg::Odometry;
-using TfStateMsg = tf2_msgs::msg::TFMessage;
-using OdomStatePublisher = realtime_tools::RealtimePublisher<OdomStateMsg>;
-using TfStatePublisher = realtime_tools::RealtimePublisher<TfStateMsg>;
+using TwistStamped = geometry_msgs::msg::TwistStamped;
+using OdomMsg = nav_msgs::msg::Odometry;
+using TfMsg = tf2_msgs::msg::TFMessage;
 
 // Enum definitions
 enum Rotation { CCW, CW, STOP };
@@ -58,17 +56,19 @@ struct ModuleHandles {
       steering_state_pos;
   std::reference_wrapper<hardware_interface::LoanedCommandInterface>
       steering_cmd_pos;
-  // Wheel state might be needed for odometry (not implemented here)
   std::reference_wrapper<const hardware_interface::LoanedStateInterface>
-      wheel_state_vel;
+      steering_state_vel;
   std::reference_wrapper<hardware_interface::LoanedCommandInterface>
-      wheel_cmd_vel;
+      steering_cmd_vel;
+  // Drive state might be needed for odometry (not implemented here)
+  std::reference_wrapper<const hardware_interface::LoanedStateInterface>
+      drive_state_vel;
+  std::reference_wrapper<hardware_interface::LoanedCommandInterface>
+      drive_cmd_vel;
   // Store parameters associated with this module
   double x_offset;
   double y_offset;
   double angle_offset;
-  double steering_limit_lower;
-  double steering_limit_upper;
 };
 
 class CasterSwerveDriveController
@@ -87,20 +87,17 @@ public:
   /**
    * @brief Configuration function see @ControllerInterface::on_configure
    */
-  CallbackReturn
-  on_configure(const rclcpp_lifecycle::State &previous_state) override;
+  CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
 
   /**
    * @brief Activation function see @ControllerInterface::on_activate
    */
-  CallbackReturn
-  on_activate(const rclcpp_lifecycle::State &previous_state) override;
+  CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
 
   /**
    * @brief Deactivation function see @ControllerInterface::on_deactivate
    */
-  CallbackReturn
-  on_deactivate(const rclcpp_lifecycle::State &previous_state) override;
+  CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
 
   /**
    * @brief Command interface configuration function see
@@ -122,51 +119,20 @@ public:
   controller_interface::return_type
   update(const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
-  /**
-   * @brief Callback for the cmd_vel subscriber
-   */
-  void reference_callback(const std::shared_ptr<CmdVelMsg> msg);
-
-  // Parameters from ROS for swerve drive controller
+  // Parameters from ROS for caster swerve drive controller
   std::shared_ptr<ParamListener> param_listener_;
   Params params_;
 
 protected:
   // Parameters
-  std::vector<std::string> steering_joint_names_;
-  std::vector<std::string> wheel_joint_names_;
-  double wheel_radius_;
-  std::vector<double> module_x_offsets_;
-  std::vector<double> module_y_offsets_;
-  std::vector<double> module_angle_offsets_;
-  std::vector<double> module_steering_limit_lower_;
-  std::vector<double> module_steering_limit_upper_;
-  std::vector<double> module_wheel_speed_limit_lower_;
-  std::vector<double> module_wheel_speed_limit_upper_;
-  bool enabled_steering_flip_;
-  bool enabled_steering_angular_velocity_limit_;
-  bool enabled_steering_angular_limit_;
-  bool enabled_open_loop_;
-  uint is_rotation_direction_;
-  std::vector<double> previoud_steering_commands_;
-  double steering_angular_velocity_limit_;
-  double steering_alignment_angle_error_threshold_;
-  double steering_alignment_start_angle_error_threshold_;
-  double steering_alignment_start_speed_error_threshold_;
-  std::string odom_solver_method_str_;
-
-  std::string cmd_vel_topic_;
-  bool use_stamped_cmd_vel_;
-  double cmd_vel_timeout_;
-  rclcpp::Duration ref_timeout_;
-
-  // Store number of modules
+  rclcpp::Duration cmd_vel_timeout_ = rclcpp::Duration::from_seconds(0.5);
   size_t num_modules_ = 0;
 
-  // Realtime buffer for incoming Twist commands
-  realtime_tools::RealtimeBuffer<std::shared_ptr<CmdVelMsg>> cmd_vel_buffer_;
   // Subscriber
-  rclcpp::Subscription<CmdVelMsg>::SharedPtr cmd_vel_subscriber_ = nullptr;
+  rclcpp::Subscription<TwistStamped>::SharedPtr cmd_vel_subscriber_ = nullptr;
+
+  // Realtime buffer for incoming TwistStamped commands
+  realtime_tools::RealtimeBuffer<std::shared_ptr<TwistStamped>> cmd_vel_buffer_;
 
   // Interface handles organized by module
   std::vector<ModuleHandles> module_handles_;
@@ -179,8 +145,9 @@ protected:
 
   // Odometry
   Odometry odometry_;
-  rclcpp::Publisher<OdomStateMsg>::SharedPtr odom_s_publisher_ = nullptr;
-  std::unique_ptr<OdomStatePublisher> rt_odom_state_publisher_ = nullptr;
+  std::shared_ptr<rclcpp::Publisher<OdomMsg>> odometry_publisher_ = nullptr;
+  std::shared_ptr<realtime_tools::RealtimePublisher<OdomMsg>>
+      realtime_odometry_publisher_ = nullptr;
 
   // joint commander publisher
   using CommandedJointStatePublisher =
@@ -200,33 +167,17 @@ protected:
   std::string odom_source_;
 
   // TF Broadcaster
-  rclcpp::Publisher<TfStateMsg>::SharedPtr tf_odom_s_publisher_;
-  std::unique_ptr<TfStatePublisher> rt_tf_odom_state_publisher_;
-
-  // Visualization
-  bool enable_visualization_;
-  std::string visualization_marker_topic_;
-  std::unique_ptr<MarkerVisualize> visualizer_ = nullptr;
-  double visualization_update_time_;
-  rclcpp::Time last_visualization_publish_time_;
-
-  // speed limiters
-  bool enabled_speed_limits_;
-  bool publish_limited_velocity_;
-  std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::Twist>>
-      limited_velocity_publisher_ = nullptr;
-  std::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::msg::Twist>>
-      realtime_limited_velocity_publisher_ = nullptr;
-  std::queue<Twist> previous_commands_;
-
-  SpeedLimiter limiter_linear_x_;
-  SpeedLimiter limiter_linear_y_;
-  SpeedLimiter limiter_angular_z_;
+  std::shared_ptr<rclcpp::Publisher<TfMsg>> odometry_transform_publisher_ =
+      nullptr;
+  std::shared_ptr<realtime_tools::RealtimePublisher<TfMsg>>
+      realtime_odometry_transform_publisher_ = nullptr;
 
   // Flag to check if stopping due to timeout
   bool enable_direct_joint_commands_ = false;
   double wheel_saturation_scale_factor_ = 1.0;
   bool enabled_wheel_saturation_scaling_ = false;
+
+  rclcpp::Time previous_update_timestamp_{0};
 
   // Open Loop ctrl
   std::vector<double> previous_wheel_directions_;

@@ -8,10 +8,10 @@ caster_swerve_drive_controller:
     }
   }
 
-  wheel_joint_names: {
+  driving_joint_names: {
     type: string_array,
-    default_value: ["wheel_front_left_joint", "wheel_front_right_joint", "wheel_rear_left_joint", "wheel_rear_right_joint"],
-    description: "Names of the wheel (driving) joints. Order should correspond to steering_joint_names",
+    default_value: ["driving_front_left_joint", "driving_front_right_joint", "driving_rear_left_joint", "driving_rear_right_joint"],
+    description: "Names of the driving joints. Order should correspond to steering_joint_names",
     validation: {
       not_empty<>: []
     }
@@ -44,46 +44,16 @@ caster_swerve_drive_controller:
     description: "Angle offsets for each steering module in radians. This is the angle of the wheel relative to the robot's forward direction when the steering joint encoder reads zero. Order matches joint_names.",
   }
 
-  module_steering_limit_lower: {
-    type: double_array,
-    default_value: [-1.570796, -1.570796, -1.570796, -1.570796],
-    description: "Lower position limits for steering joints in radians. Order matches joint_names",
-  }
-
-  module_steering_limit_upper: {
-    type: double_array,
-    default_value: [1.570796,  1.570796,  1.570796,  1.570796],
-    description: "Upper position limits for steering joints in radians. Order matches joint_names",
-  }
-
-  module_wheel_speed_limit_lower: {
-    type: double_array,
-    default_value: [-50.0, -50.0, -50.0, -50.0],
-    description: "Lower velocity limits for wheel joints in rad/s. Order matches joint_names",
-  }
-
-  module_wheel_speed_limit_upper: {
-    type: double_array,
-    default_value: [50.0, 50.0, 50.0, 50.0],
-    description: "Lower velocity limits for wheel joints in rad/s. Order matches joint_names",
-  }
-
-  steering_angular_velocity_limit: {
+  caster_x_offset: {
     type: double,
-    default_value: 1.0,
-    description: "Maximum angular velocity for steering joints in rad/s.",
+    default_value: 0.02,
+    description: "X offset in meters of caster's ground contact point from module's steering axis"
   }
 
-  steering_alignment_angle_error_threshold: {
+  caster_y_offset: {
     type: double,
-    default_value: 0.10,
-    description: "Steering angle error threshold in radians to consider module aligned for full wheel speed.",
-  }
-
-  wheel_velocity_during_alignment_factor: {
-    type: double,
-    default_value: 0.10,
-    description: "Factor to multiply wheel velocity by when steering is aligning (0.0 to 1.0).",
+    default_value: 0.0,
+    description: "Y offset in meters of caster's ground contact point from module's steering axis"
   }
 
   cmd_vel_topic: {
@@ -96,15 +66,6 @@ caster_swerve_drive_controller:
     type: double,
     default_value: 0.5,
     description: "Timeout for cmd_vel subscription in seconds. If no message is received within this time, the controller will stop.",
-  }
-
-  odom_solver_method: {
-    type: string,
-    default_value: "svd",
-    description: "Method for solving odometry kinematics: 'normal_equation' (manual pseudo-inverse), 'qr' (QR decomposition), or 'svd' (Singular Value Decomposition).",
-    validation: {
-      one_of<>: [["normal_equation", "qr", "svd"]] # Must be greater than 0
-    }
   }
 
   odometry_data_source: {
@@ -134,170 +95,8 @@ caster_swerve_drive_controller:
     description: "Enable/disable publishing of odom -> base_frame TF."
   }
 
-  pose_covariance_diagonal: {
-    type: double_array,
-    default_value: [0.001, 0.001, 0.001, 0.001, 0.001, 0.001],
-    description: "Diagonal elements of the pose covariance matrix (x, y, z, roll, pitch, yaw).",
-    validation: {
-      fixed_size<>: [6]
-    }
-  }
-
-  twist_covariance_diagonal: {
-    type: double_array,
-    default_value: [0.001, 0.001, 0.001, 0.001, 0.001, 0.001],
-    description: "Diagonal elements of the twist covariance matrix (vx, vy, vz, vroll, vpitch, vyaw).",
-    validation: {
-      fixed_size<>: [6]
-    }
-  }
-
-  velocity_rolling_window_size: {
-    type: int,
-    default_value: 1,
-    description: "Size of the rolling window for averaging wheel velocities in odometry. 1 means no averaging."
-  }
-
-  enable_visualization: {
+  open_loop: {
     type: bool,
-    default_value: true,
-    description: "Enable/disable publishing of visualization markers."
+    default_value: false,
+    description: "If set to true the odometry of the robot will be calculated from the commanded values and not from feedback.",
   }
-
-  visualization_marker_topic: {
-    type: string,
-    default_value: "swerve_visualization_markers" ,
-    description: "Topic name for visualization markers."
-  }
-
-  visualization_update_time: {
-    type: double,
-    default_value: 0.10,
-    description: "Size of the rolling window for averaging wheel velocities in odometry. 1 means no averaging."
-  }
-
-  enabled_speed_limits: {
-    type: bool,
-    default_value: true,
-    description: "Enable/disable limits on the commanded speed."
-  }
-
-  publish_limited_velocity: {
-    type: bool,
-    default_value: true,
-    description: "Enable/disable publishing of the limited velocity."
-  }
-
-  linear:
-    x:
-      has_velocity_limits: {
-        type: bool,
-        default_value: false,
-      }
-      has_acceleration_limits: {
-        type: bool,
-        default_value: false,
-      }
-      has_jerk_limits: {
-        type: bool,
-        default_value: false,
-      }
-      max_velocity: {
-        type: double,
-        default_value: .NAN,
-      }
-      min_velocity: {
-        type: double,
-        default_value: .NAN,
-      }
-      max_acceleration: {
-        type: double,
-        default_value: .NAN,
-      }
-      min_acceleration: {
-        type: double,
-        default_value: .NAN,
-      }
-      max_jerk: {
-        type: double,
-        default_value: .NAN,
-      }
-      min_jerk: {
-        type: double,
-        default_value: .NAN,
-      }
-    y:
-      has_velocity_limits: {
-        type: bool,
-        default_value: false,
-      }
-      has_acceleration_limits: {
-        type: bool,
-        default_value: false,
-      }
-      has_jerk_limits: {
-        type: bool,
-        default_value: false,
-      }
-      max_velocity: {
-        type: double,
-        default_value: .NAN,
-      }
-      min_velocity: {
-        type: double,
-        default_value: .NAN,
-      }
-      max_acceleration: {
-        type: double,
-        default_value: .NAN,
-      }
-      min_acceleration: {
-        type: double,
-        default_value: .NAN,
-      }
-      max_jerk: {
-        type: double,
-        default_value: .NAN,
-      }
-      min_jerk: {
-        type: double,
-        default_value: .NAN,
-      }
-  angular:
-    z:
-      has_velocity_limits: {
-        type: bool,
-        default_value: false,
-      }
-      has_acceleration_limits: {
-        type: bool,
-        default_value: false,
-      }
-      has_jerk_limits: {
-        type: bool,
-        default_value: false,
-      }
-      max_velocity: {
-        type: double,
-        default_value: .NAN,
-      }
-      min_velocity: {
-        type: double,
-        default_value: .NAN,
-      }
-      max_acceleration: {
-        type: double,
-        default_value: .NAN,
-      }
-      min_acceleration: {
-        type: double,
-        default_value: .NAN,
-      }
-      max_jerk: {
-        type: double,
-        default_value: .NAN,
-      }
-      min_jerk: {
-        type: double,
-        default_value: .NAN,
-      }

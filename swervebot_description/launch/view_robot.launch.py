@@ -1,13 +1,7 @@
-import os
-
-from ament_index_python.packages import get_package_share_directory
-
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
-from launch.substitutions import Command
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import Command, PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
 
-from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.actions import Node
 
 def generate_launch_description():
@@ -15,18 +9,14 @@ def generate_launch_description():
         package_name = 'swervebot_description'
 
         # Process URDF
-        xacro_file = os.path.join(
-                get_package_share_directory(package_name),
-                'urdf', 
-                'main.xacro'
-        )
-        robot_description = ParameterValue(
-        Command(['xacro ', xacro_file]),
-        value_type=str
-        )
+        xacro_file = PathJoinSubstitution(
+		[FindPackageShare(package_name),
+		'urdf',
+	    	'main.xacro'])
+        robot_description_content = Command(['xacro ', xacro_file])
         
         # Robot state publisher
-        robot_config = {'use_sim_time': True, 'robot_description': robot_description}
+        robot_config = {'use_sim_time': True, 'robot_description': robot_description_content}
         robot_state_publisher = Node(
                 package='robot_state_publisher',
                 executable='robot_state_publisher',
@@ -39,7 +29,7 @@ def generate_launch_description():
         rviz = Node(
                 package='rviz2',
                 executable='rviz2',
-                arguments=['-d', os.path.join(get_package_share_directory(package_name), 'rviz', 'rviz.rviz')],
+                arguments=['-d', PathJoinSubstitution([FindPackageShare(package_name), 'rviz', 'rviz.rviz'])],
                 output='screen'
         )
 
