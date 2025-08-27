@@ -1,0 +1,47 @@
+ros2 topic pub /forward_velocity_controller/commands std_msgs/msg/Float64MultiArray "
+data:
+ - 0.2
+ - 0.2
+ - 0.2
+ - 0.2
+ - 1.0
+ - 1.0
+ - 1.0 
+ - 1.0"
+ 
+ros2 topic pub /forward_velocity_controller/commands std_msgs/msg/Float64MultiArray "
+data:
+ - 0.0
+ - 0.0
+ - 0.0
+ - 0.0
+ - 0.0
+ - 0.0
+ - 0.0
+ - 0.0" 
+
+ros2 topic pub /forward_position_controller/commands std_msgs/msg/Float64MultiArray "
+data:
+ - 0.5
+ - 0.5
+ - 0.5
+ - 0.5
+ - 1.0
+ - 1.0
+ - 1.0 
+ - 1.0"
+
+ros2 topic pub /forward_position_controller/commands std_msgs/msg/Float64MultiArray "
+data:
+ - 2.3
+ - 2.3
+ - 2.3
+ - 2.3
+ - 0.0
+ - 0.0
+ - 0.0
+ - 0.0"
+
+ros2 control switch_controllers --deactivate forward_velocity_controller --activate forward_position_controller
+
+ros2 control switch_controllers --deactivate forward_position_controller --activate forward_velocity_controller

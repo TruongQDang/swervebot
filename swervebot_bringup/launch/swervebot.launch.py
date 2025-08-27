@@ -88,6 +88,16 @@ def generate_launch_description():
 			"/controller_manager"],
 	)
 
+	# Forward velocity controller
+	velocity_controller = Node(
+		package="controller_manager",
+		executable="spawner",
+		arguments=[
+			"forward_velocity_controller", 
+			"--controller-manager", 
+			"/controller_manager"],
+	)
+
 	return LaunchDescription(
 		declared_arguments 
 		+ [
@@ -96,4 +106,5 @@ def generate_launch_description():
 		rviz,
 		joint_state_broadcaster_spawner,
 		position_controller,
+		velocity_controller,
 		])
