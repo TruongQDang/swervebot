@@ -4,3 +4,14 @@ controller_manager:
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
+    forward_position_controller:
+      type: forward_command_controller/ForwardCommandController
+
+forward_position_controller:
+  ros__parameters:
+    joints:
+      - steering_front_left_joint
+      - steering_front_right_joint
+      - steering_rear_left_joint
+      - steering_rear_right_joint
+    interface_name: position

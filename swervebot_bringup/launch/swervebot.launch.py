@@ -43,7 +43,6 @@ def generate_launch_description():
                 parameters=[robot_description],
         ) 
 
-	
 	# Rviz
 	rviz_config_file = PathJoinSubstitution(
 		[FindPackageShare(description_package), 
@@ -79,21 +78,15 @@ def generate_launch_description():
 			"/controller_manager",],
 	)
 
-
-	# # Delay loading and activation of `joint_state_broadcaster` after start of ros2_control_node
-	# delay_joint_state_broadcaster_spawner_after_ros2_control_node = (
-	# 	RegisterEventHandler(
-	# 	event_handler=OnProcessStart(
-	# 		target_action=controller_manager,
-	# 		on_start=[
-	# 		TimerAction(
-	# 			period=1.0,
-	# 			actions=[joint_state_broadcaster_spawner],
-	# 		),
-	# 		],
-	# 	)
-	# 	)
-	# )
+	# Forward position controller
+	position_controller = Node(
+		package="controller_manager",
+		executable="spawner",
+		arguments=[
+			"forward_position_controller", 
+			"--controller-manager", 
+			"/controller_manager"],
+	)
 
 	return LaunchDescription(
 		declared_arguments 
@@ -102,5 +95,5 @@ def generate_launch_description():
 		controller_manager,
 		rviz,
 		joint_state_broadcaster_spawner,
-		# delay_joint_state_broadcaster_spawner_after_ros2_control_node
+		position_controller,
 		])
