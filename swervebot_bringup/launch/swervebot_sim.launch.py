@@ -9,7 +9,6 @@ def generate_launch_description():
 	description_package = 'swervebot_description'
 	description_file = 'main.xacro'
 	bringup_package = 'swervebot_bringup'
-	controllers_config = 'swervebot_controllers.yaml'
 
 	# Robot state publisher
 	xacro_file = PathJoinSubstitution(

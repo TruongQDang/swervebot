@@ -1,9 +1,9 @@
 <library path="caster_swerve_drive_controller">
     <class name="caster_swerve_drive_controller/CasterSwerveDriveController"
         type="caster_swerve_drive_controller::CasterSwerveDriveController"
-        base_class_type="controller_interface::ControllerInterface">
+        base_class_type="controller_interface::ChainableControllerInterface">
         <description>
-            Controller for a caster swerve drive robot based on Twist commands.
+            Controller for a caster swerve drive robot.
         </description>
     </class>
 </library>

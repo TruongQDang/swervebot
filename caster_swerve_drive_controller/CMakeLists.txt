@@ -39,8 +39,6 @@ generate_parameter_library(caster_swerve_drive_controller_parameter
 add_library(caster_swerve_drive_controller
   SHARED
   src/caster_swerve_drive_controller.cpp
-  src/odometry.cpp
-  src/speed_limiter.cpp
 )
 target_compile_features(caster_swerve_drive_controller PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
