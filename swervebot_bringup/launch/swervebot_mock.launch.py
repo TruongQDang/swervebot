@@ -1,7 +1,6 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, RegisterEventHandler, TimerAction
+from launch.actions import DeclareLaunchArgument
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
-from launch.event_handlers import OnProcessExit, OnProcessStart
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -11,18 +10,6 @@ def generate_launch_description():
 	bringup_package = 'swervebot_bringup'
 	controllers_config = 'swervebot_controllers.yaml'
 
-	# Declare arguments
-	declared_arguments = []
-	declared_arguments.append(
-		DeclareLaunchArgument(
-			"use_mock_hardware",
-			default_value="true",
-			description="Start robot with fake hardware mirroring command to its states.",)
-	)
-
-	# Initialize arguments
-	use_mock_hardware = LaunchConfiguration("use_mock_hardware")
-
 	# Robot state publisher
 	xacro_file = PathJoinSubstitution(
 		[FindPackageShare(description_package),
@@ -31,7 +18,7 @@ def generate_launch_description():
 
 	robot_description_content = Command([
 		'xacro ', xacro_file,
-		' use_mock_hardware:=', use_mock_hardware])
+		' use_mock_hardware:=true'])
 
 	robot_description = {'robot_description': robot_description_content}
 
@@ -98,9 +85,7 @@ def generate_launch_description():
 			"/controller_manager"],
 	)
 
-	return LaunchDescription(
-		declared_arguments 
-		+ [
+	return LaunchDescription([
 		robot_state_publisher,
 		controller_manager,
 		rviz,

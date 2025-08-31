@@ -2,11 +2,13 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="swervebot">
         <!-- Parameters are set from launch file -->
         <xacro:arg name="use_mock_hardware" default="false" />
+        <xacro:arg name="sim_gazebo" default="false" />
 
         <xacro:include filename="swervebot_urdf.xacro" />
         <xacro:include filename="ros2_control.xacro" />
 
         <xacro:swervebot_ros2_control
                 name="swervebot"
-                use_mock_hardware="$(arg use_mock_hardware)" />
+                use_mock_hardware="$(arg use_mock_hardware)"
+                sim_gazebo="$(arg sim_gazebo)" />
 </robot>
