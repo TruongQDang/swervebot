@@ -5,7 +5,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   controller_interface
   hardware_interface
@@ -18,6 +17,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
 )
 
 find_package(ament_cmake REQUIRED)
+find_package(backward_ros REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
@@ -37,6 +37,7 @@ target_include_directories(caster_swerve_drive_controller PUBLIC
 )
 
 target_link_libraries(caster_swerve_drive_controller PUBLIC
+  caster_swerve_drive_controller_parameter
   controller_interface::controller_interface
   hardware_interface::hardware_interface
   pluginlib::pluginlib
@@ -44,7 +45,6 @@ target_link_libraries(caster_swerve_drive_controller PUBLIC
   rclcpp_lifecycle::rclcpp_lifecycle
   realtime_tools::realtime_tools
   ${geometry_msgs_TARGETS}
-  caster_swerve_drive_controller_parameter
 )
 
 
@@ -80,8 +80,7 @@ install(
   RUNTIME DESTINATION bin
 )
 
-# Export the plugin definition file
-pluginlib_export_plugin_description_file(controller_interface caster_swerve_drive_controller.xml) # Use your XML filename
+pluginlib_export_plugin_description_file(controller_interface caster_swerve_drive_controller.xml)
 ament_export_targets(
   export_caster_swerve_drive_controller HAS_LIBRARY_TARGET
 )

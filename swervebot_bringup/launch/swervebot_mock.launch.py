@@ -2,6 +2,9 @@ from launch import LaunchDescription
 from launch.substitutions import Command, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch.actions import RegisterEventHandler
+from launch.conditions import IfCondition
+from launch.event_handlers import OnProcessExit
 
 def generate_launch_description():
 	description_package = 'swervebot_description'
@@ -74,10 +77,29 @@ def generate_launch_description():
 			"/controller_manager"],
 	)
 
+	# Feedforward_rear_left_caster
+	feedforward_controller_steering_front_left_joint = Node(
+		package="controller_manager",
+		executable="spawner",
+		arguments=[
+			"feedforward_controller_steering_front_left_joint", 
+			"--controller-manager", 
+			"/controller_manager"],
+	)
+
+	# Delay caster swerve controller after feedforward controller
+	delay_swerve_controller_after_feedforward_controller = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=feedforward_controller_steering_front_left_joint,
+            on_exit=[caster_swerve_drive_controller],
+        )
+    )
+
 	return LaunchDescription([
 		robot_state_publisher,
 		controller_manager,
 		rviz,
 		joint_state_broadcaster_spawner,
-		caster_swerve_drive_controller,
+		feedforward_controller_steering_front_left_joint,
+		delay_swerve_controller_after_feedforward_controller
 		])

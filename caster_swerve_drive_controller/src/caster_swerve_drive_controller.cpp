@@ -48,7 +48,6 @@ CasterSwerveDriveController::state_interface_configuration() const {
   std::vector<std::string> conf_names;
   for (const auto &joint_name : params_.steering_joint_names) {
     conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
-    conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
   }
   for (const auto &joint_name : params_.driving_joint_names) {
     conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
