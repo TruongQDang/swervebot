@@ -31,7 +31,6 @@ InterfaceConfiguration
 CasterSwerveDriveController::command_interface_configuration() const {
   std::vector<std::string> conf_names;
   for (const auto &joint_name : params_.steering_joint_names) {
-    conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
     conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
   }
   for (const auto &joint_name : params_.driving_joint_names) {
@@ -52,6 +51,7 @@ CasterSwerveDriveController::state_interface_configuration() const {
     conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
   }
   for (const auto &joint_name : params_.driving_joint_names) {
+    conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
     conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
   }
   return {interface_configuration_type::INDIVIDUAL, conf_names};
@@ -96,13 +96,16 @@ CasterSwerveDriveController::update_and_write_commands(
   return controller_interface::return_type::OK;
 }
 
-controller_interface::CallbackReturn
-CasterSwerveDriveController::on_configure(const rclcpp_lifecycle::State &) {
+controller_interface::CallbackReturn CasterSwerveDriveController::on_configure(
+    const rclcpp_lifecycle::State &previous_state) {
+  const int nr_ref_itfs = 2;
+  reference_interfaces_.resize(nr_ref_itfs,
+                               std::numeric_limits<double>::quiet_NaN());
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::CallbackReturn
-CasterSwerveDriveController::on_activate(const rclcpp_lifecycle::State &) {
+controller_interface::CallbackReturn CasterSwerveDriveController::on_activate(
+    const rclcpp_lifecycle::State &previous_state) {
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -111,10 +114,32 @@ bool CasterSwerveDriveController::on_set_chained_mode(bool /*chained_mode*/) {
   return true;
 }
 
+controller_interface::CallbackReturn CasterSwerveDriveController::on_deactivate(
+    const rclcpp_lifecycle::State &previous_state) {
+  return controller_interface::CallbackReturn::SUCCESS;
+}
+
+std::vector<hardware_interface::CommandInterface>
+CasterSwerveDriveController::on_export_reference_interfaces() {
+  std::vector<hardware_interface::CommandInterface> reference_interfaces;
+
+  reference_interfaces.reserve(reference_interfaces_.size());
+
+  reference_interfaces.push_back(hardware_interface::CommandInterface(
+      get_node()->get_name() + std::string("/linear"),
+      hardware_interface::HW_IF_VELOCITY, &reference_interfaces_[0]));
+
+  reference_interfaces.push_back(hardware_interface::CommandInterface(
+      get_node()->get_name() + std::string("/angular"),
+      hardware_interface::HW_IF_VELOCITY, &reference_interfaces_[1]));
+
+  return reference_interfaces;
+}
+
+} // namespace caster_swerve_drive_controller
+
 #include "class_loader/register_macro.hpp"
 
 CLASS_LOADER_REGISTER_CLASS(
     caster_swerve_drive_controller::CasterSwerveDriveController,
     controller_interface::ChainableControllerInterface)
-
-} // namespace caster_swerve_drive_controller

@@ -47,6 +47,9 @@ public:
 protected:
   bool on_set_chained_mode(bool chained_mode) override;
 
+  std::vector<hardware_interface::CommandInterface>
+  on_export_reference_interfaces() override;
+
   std::shared_ptr<ParamListener> param_listener_;
   Params params_;
 

@@ -1,6 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import Command, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -65,22 +64,12 @@ def generate_launch_description():
 			"/controller_manager",],
 	)
 
-	# Forward position controller
-	position_controller = Node(
+	# Caster swerve drive controller
+	caster_swerve_drive_controller = Node(
 		package="controller_manager",
 		executable="spawner",
 		arguments=[
-			"forward_position_controller", 
-			"--controller-manager", 
-			"/controller_manager"],
-	)
-
-	# Forward velocity controller
-	velocity_controller = Node(
-		package="controller_manager",
-		executable="spawner",
-		arguments=[
-			"forward_velocity_controller", 
+			"caster_swerve_drive_controller", 
 			"--controller-manager", 
 			"/controller_manager"],
 	)
@@ -90,6 +79,5 @@ def generate_launch_description():
 		controller_manager,
 		rviz,
 		joint_state_broadcaster_spawner,
-		position_controller,
-		velocity_controller,
+		caster_swerve_drive_controller,
 		])
