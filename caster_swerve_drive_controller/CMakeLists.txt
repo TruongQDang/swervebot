@@ -40,25 +40,11 @@ add_library(caster_swerve_drive_controller
   SHARED
   src/caster_swerve_drive_controller.cpp
 )
-target_compile_features(caster_swerve_drive_controller PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_compile_features(caster_swerve_drive_controller PUBLIC cxx_std_17)  # Require C++17
 
 target_include_directories(caster_swerve_drive_controller PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-  ${controller_interface_INCLUDE_DIRS}
-  ${hardware_interface_INCLUDE_DIRS}
-  ${nav_msgs_INCLUDE_DIRS}
-  ${pluginlib_INCLUDE_DIRS}
-  ${rclcpp_INCLUDE_DIRS}
-  ${rclcpp_lifecycle_INCLUDE_DIRS}
-  ${realtime_tools_INCLUDE_DIRS}
-  ${std_srvs_INCLUDE_DIRS}
-  ${tf2_INCLUDE_DIRS}
-  ${tf2_geometry_msgs_INCLUDE_DIRS}
-  ${tf2_msgs_INCLUDE_DIRS}
-  ${sensor_msgs_INCLUDE_DIRS}
-  ${visualization_msgs_INCLUDE_DIRS}
-  ${rcpputils_INCLUDE_DIRS}
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/caster_swerve_drive_controller>
 )
 
 target_link_libraries(caster_swerve_drive_controller PUBLIC
@@ -83,37 +69,40 @@ target_link_libraries(caster_swerve_drive_controller PUBLIC
 # Export the plugin definition file
 pluginlib_export_plugin_description_file(controller_interface caster_swerve_drive_controller.xml) # Use your XML filename
 
-# Causes the visibility macros to use dllexport rather than dllimport,
-# which is appropriate when building the dll but not consuming it.
-target_compile_definitions(caster_swerve_drive_controller PRIVATE "CASTER_SWERVE_DRIVE_CONTROLLER_BUILDING_LIBRARY")
+if(BUILD_TESTING)
+  find_package(ament_cmake_gmock REQUIRED)
+  find_package(controller_manager REQUIRED)
+  find_package(ros2_control_test_assets REQUIRED)
+
+  ament_add_gmock(test_caster_swerve_drive_controller
+    test/test_caster_swerve_drive_controller.cpp
+  )
+  target_link_libraries(test_caster_swerve_drive_controller
+    caster_swerve_drive_controller
+  )
+
+  add_definitions(-DTEST_FILES_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/test")
+  ament_add_gmock(test_load_caster_swerve_drive_controller test/test_load_caster_swerve_drive_controller.cpp)
+  target_link_libraries(test_load_caster_swerve_drive_controller
+    controller_manager::controller_manager
+    ros2_control_test_assets::ros2_control_test_assets
+  )
+endif()
 
 install(
   DIRECTORY include/
-  DESTINATION include
+  DESTINATION include/caster_swerve_drive_controller
 )
 install(
   TARGETS caster_swerve_drive_controller caster_swerve_drive_controller_parameter
-  EXPORT export_${PROJECT_NAME}
+  EXPORT export_caster_swerve_drive_controller
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include
 )
 
-# Install the plugin XML file
-install(FILES caster_swerve_drive_controller.xml # Use your XML filename
-    DESTINATION share/${PROJECT_NAME}
-)
-
-ament_export_include_directories(
-  include
-)
-ament_export_libraries(
-  ffw_swerve_drive_controller
-)
 ament_export_targets(
-  export_${PROJECT_NAME}
+  export_caster_swerve_drive_controller HAS_LIBRARY_TARGET
 )
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
-
 ament_package()
