@@ -6,13 +6,18 @@ controller_manager:
       type: joint_state_broadcaster/JointStateBroadcaster
     caster_swerve_drive_controller:
       type: caster_swerve_drive_controller/CasterSwerveDriveController
-    feedforward_controller_steering_front_left_joint:
+    feedforward_controller_steering:
+      type: pid_controller/PidController
+    feedforward_controller_driving:
       type: pid_controller/PidController
 
-feedforward_controller_steering_front_left_joint:
+feedforward_controller_steering:
   ros__parameters:
     dof_names:
       - steering_front_left_joint
+      - steering_front_right_joint
+      - steering_rear_left_joint
+      - steering_rear_right_joint
 
     command_interface: position
 
@@ -20,13 +25,44 @@ feedforward_controller_steering_front_left_joint:
       - position
 
     gains:
-      steering_front_left_joint: {p: 1.0}
+      steering_front_left_joint: {feedforward_gain: 1.0}
+      steering_front_right_joint: {feedforward_gain: 1.0}
+      steering_rear_left_joint: {feedforward_gain: 1.0}
+      steering_rear_right_joint: {feedforward_gain: 1.0}
+
+    enable_feedforward: true # this param will be deprecated soon
+
+feedforward_controller_driving:
+  ros__parameters:
+    dof_names:
+      - driving_front_left_joint
+      - driving_front_right_joint
+      - driving_rear_left_joint
+      - driving_rear_right_joint
+
+    command_interface: velocity
+
+    reference_and_state_interfaces: 
+      - velocity
+
+    gains:
+      driving_front_left_joint: {feedforward_gain: 1.0}
+      driving_front_right_joint: {feedforward_gain: 1.0}
+      driving_rear_left_joint: {feedforward_gain: 1.0}
+      driving_rear_right_joint: {feedforward_gain: 1.0}
+
+    enable_feedforward: true # this param will be deprecated soon
 
 caster_swerve_drive_controller:
   ros__parameters:
     steering_joint_names:
-     - feedforward_controller_steering_front_left_joint/steering_front_left_joint
-     - steering_front_right_joint
-     - steering_rear_left_joint
-     - steering_rear_right_joint
+      - feedforward_controller_steering/steering_front_left_joint
+      - feedforward_controller_steering/steering_front_right_joint
+      - feedforward_controller_steering/steering_rear_left_joint
+      - feedforward_controller_steering/steering_rear_right_joint
+    driving_joint_names:
+      - feedforward_controller_driving/driving_front_left_joint
+      - feedforward_controller_driving/driving_front_right_joint
+      - feedforward_controller_driving/driving_rear_left_joint
+      - feedforward_controller_driving/driving_rear_right_joint
 

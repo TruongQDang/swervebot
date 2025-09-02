@@ -77,12 +77,13 @@ def generate_launch_description():
 			"/controller_manager"],
 	)
 
-	# Feedforward_rear_left_caster
-	feedforward_controller_steering_front_left_joint = Node(
+	# Feedforward controller
+	feedforward_controller = Node(
 		package="controller_manager",
 		executable="spawner",
 		arguments=[
-			"feedforward_controller_steering_front_left_joint", 
+			"feedforward_controller_steering", 
+			"feedforward_controller_driving",
 			"--controller-manager", 
 			"/controller_manager"],
 	)
@@ -90,7 +91,7 @@ def generate_launch_description():
 	# Delay caster swerve controller after feedforward controller
 	delay_swerve_controller_after_feedforward_controller = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=feedforward_controller_steering_front_left_joint,
+            target_action=feedforward_controller,
             on_exit=[caster_swerve_drive_controller],
         )
     )
@@ -100,6 +101,6 @@ def generate_launch_description():
 		controller_manager,
 		rviz,
 		joint_state_broadcaster_spawner,
-		feedforward_controller_steering_front_left_joint,
-		delay_swerve_controller_after_feedforward_controller
+		feedforward_controller,
+		#delay_swerve_controller_after_feedforward_controller
 		])

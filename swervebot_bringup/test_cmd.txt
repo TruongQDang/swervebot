@@ -1,38 +1,35 @@
-ros2 topic pub /forward_velocity_controller/commands std_msgs/msg/Float64MultiArray "
-data:
- - 1.2
- - 1.2
- - 1.2
- - 1.2
- - 1.0
- - 1.0
- - 1.0 
- - 1.0"
- 
-ros2 topic pub /forward_velocity_controller/commands std_msgs/msg/Float64MultiArray "
-data:
- - 0.0
- - 0.0
- - 0.0
- - 0.0
- - 0.0
- - 0.0
- - 0.0
- - 0.0" 
+ros2 topic pub /feedforward_controller_steering/reference control_msgs/msg/MultiDOFCommand "{
+  dof_names: [
+    'steering_front_left_joint',
+    'steering_front_right_joint',
+    'steering_rear_left_joint',
+    'steering_rear_right_joint'
+  ],
+  values: [0.3, 0.3, 0.3, 0.3],
+  values_dot: [0.0, 0.0, 0.0, 0.0]
+}"
 
-ros2 topic pub /forward_position_controller/commands std_msgs/msg/Float64MultiArray "
-data:
- - 0.5
- - 0.5
- - 0.5
- - 0.5"
+ros2 topic pub /feedforward_controller_driving/reference control_msgs/msg/MultiDOFCommand "{
+  dof_names: [
+    'driving_front_left_joint',
+    'driving_front_right_joint',
+    'driving_rear_left_joint',
+    'driving_rear_right_joint'
+  ],
+  values: [0.5, 0.5, 0.5, 0.5],
+  values_dot: [0.0, 0.0, 0.0, 0.0]
+}"
 
-ros2 topic pub /forward_position_controller/commands std_msgs/msg/Float64MultiArray "
-data:
- - 2.3
- - 2.3
- - 2.3
- - 2.3"
+ros2 topic pub /feedforward_controller_driving/reference control_msgs/msg/MultiDOFCommand "{
+  dof_names: [
+    'driving_front_left_joint',
+    'driving_front_right_joint',
+    'driving_rear_left_joint',
+    'driving_rear_right_joint'
+  ],
+  values: [0.0, 0.0, 0.0, 0.0],
+  values_dot: [0.0, 0.0, 0.0, 0.0]
+}"
 
 ros2 control switch_controllers --deactivate forward_velocity_controller --activate forward_position_controller
 
