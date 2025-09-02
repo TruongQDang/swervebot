@@ -50,7 +50,6 @@ CasterSwerveDriveController::state_interface_configuration() const {
     conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
   }
   for (const auto &joint_name : params_.driving_joint_names) {
-    conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
     conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
   }
   return {interface_configuration_type::INDIVIDUAL, conf_names};

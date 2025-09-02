@@ -102,5 +102,5 @@ def generate_launch_description():
 		rviz,
 		joint_state_broadcaster_spawner,
 		feedforward_controller,
-		#delay_swerve_controller_after_feedforward_controller
+		delay_swerve_controller_after_feedforward_controller
 		])

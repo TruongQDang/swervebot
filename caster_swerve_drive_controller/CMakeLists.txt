@@ -23,7 +23,7 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
 endforeach()
 
 generate_parameter_library(caster_swerve_drive_controller_parameter
-  config/caster_swerve_drive_controller_parameter.yaml
+  src/caster_swerve_drive_controller_parameter.yaml
 )
 
 add_library(caster_swerve_drive_controller
